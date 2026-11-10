@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meu Caixa</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF2EE;--surf:#FFFFFF;--ink:#16231D;--mute:#6A7A72;--line:#DCE4DD;--in:#1B7A4B;--out:#C4452D;--acc:#16231D;--accink:#EEF2EE;color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1713;--surf:#17231D;--ink:#E7EFE9;--mute:#8CA095;--line:#25352C;--in:#4FC58A;--out:#F0775F;--acc:#E7EFE9;--accink:#0F1713;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F1713;--surf:#17231D;--ink:#E7EFE9;--mute:#8CA095;--line:#25352C;--in:#4FC58A;--out:#F0775F;--acc:#E7EFE9;--accink:#0F1713;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.4 'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;padding-bottom:84px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+main{max-width:520px;margin:0 auto;padding:16px 18px}
+.num{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-variant-numeric:tabular-nums}
+.month{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.month b{font:600 18px 'Bricolage Grotesque',system-ui,sans-serif;text-transform:capitalize}
+button{font:inherit;color:inherit;cursor:pointer}
+.ic{width:40px;height:40px;border-radius:20px;border:1px solid var(--line);background:var(--surf);font-size:18px}
+.hero{padding:6px 0 18px}
+.hero small{color:var(--mute)}
+.hero .big{font-size:46px;line-height:1.05;font-weight:700;margin-top:4px;letter-spacing:-.02em}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.box{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.box small{color:var(--mute);display:block}
+.box b{font-size:19px}
+.in{color:var(--in)}.out{color:var(--out)}
+h2{font:600 16px 'Bricolage Grotesque',system-ui,sans-serif;margin:0 0 10px}
+.cat{margin-bottom:12px}
+.cat .row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:4px}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--out);border-radius:4px}
+.list{background:var(--surf);border:1px solid var(--line);border-radius:14px}
+.tx{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.tx:last-child{border-bottom:0}
+.tx .d{flex:1;min-width:0}
+.tx .d div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tx .d small{color:var(--mute)}
+.tx .x{border:0;background:none;color:var(--mute);font-size:20px;padding:4px 8px}
+.empty{padding:28px 18px;text-align:center;color:var(--mute)}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:14px;padding:14px 18px;font-weight:600;width:100%}
+.btn.s{width:auto;margin-top:12px;padding:10px 16px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:14px;padding:4px;margin-bottom:18px}
+.seg button{border:0;background:none;padding:10px;border-radius:10px;font-weight:600;color:var(--mute)}
+.seg button.on{background:var(--surf);color:var(--ink)}
+label{display:block;font-size:14px;color:var(--mute);margin:14px 0 6px}
+input[type=text],input[type=date]{width:100%;font:inherit;color:var(--ink);background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+input:focus-visible,button:focus-visible{outline:2px solid var(--in);outline-offset:2px}
+.val{font-size:34px!important;font-weight:700;font-family:'Bricolage Grotesque',system-ui,sans-serif}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{border:1px solid var(--line);background:var(--surf);border-radius:20px;padding:8px 14px;font-size:14px}
+.chips button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surf);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;border:0;background:none;padding:12px 4px 10px;font-size:12px;color:var(--mute)}
+nav button span{display:block;font-size:20px}
+nav button.on{color:var(--ink);font-weight:600}
+.err{color:var(--out);font-size:14px;margin-top:8px;min-height:20px}
+h2.sec{margin-top:24px}
+.cardlink{width:100%;text-align:left;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center}
+.hint{color:var(--mute);font-size:13px;margin:8px 0 0}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav>
+  <button data-t="resumo"><span>◔</span>Resumo</button>
+  <button data-t="lanc"><span>☰</span>Lançamentos</button>
+  <button data-t="cartao"><span>▭</span>Cartão</button>
+  <button data-t="novo"><span>＋</span>Novo</button>
+</nav>
+<script>
+const CATS={out:['Mercado','Moradia','Transporte','Lazer','Saúde','Contas','Outros'],in:['Salário','Extra','Investimentos','Outros']};
+const brl=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+let tx=[];
+try{tx=JSON.parse(localStorage.getItem('caixa-tx')||'[]')}catch(e){tx=[]}
+const save=()=>{try{localStorage.setItem('caixa-tx',JSON.stringify(tx))}catch(e){}};
+let tab='resumo',month=today().slice(0,7),form={type:'out',cat:'Mercado',err:''};
+
+const monthLabel=m=>{const[y,mo]=m.split('-');return new Date(y,mo-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})};
+const shift=n=>{const[y,m]=month.split('-').map(Number);const d=new Date(y,m-1+n,1);month=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');render()};
+const cur=()=>tx.filter(t=>t.date.slice(0,7)===month).sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);
+
+function head(){return `<div class="month"><button class="ic" onclick="shift(-1)" aria-label="Mês anterior">‹</button><b>${monthLabel(month)}</b><button class="ic" onclick="shift(1)" aria-label="Próximo mês">›</button></div>`}
+function row(t){const d=t.date.split('-').reverse().slice(0,2).join('/');
+  return `<div class="tx"><div class="d"><div>${esc(t.desc||t.cat)}</div><small>${t.cat} · ${d}</small></div><b class="num ${t.type}">${t.type==='out'?'−':'+'}${brl(t.v)}</b><button class="x" onclick="del(${t.id})" aria-label="Excluir">×</button></div>`}
+
+function resumo(){
+  const l=cur(),ent=l.filter(t=>t.type==='in').reduce((s,t)=>s+t.v,0),sai=l.filter(t=>t.type==='out').reduce((s,t)=>s+t.v,0),sal=ent-sai;
+  const by={};l.filter(t=>t.type==='out').forEach(t=>by[t.cat]=(by[t.cat]||0)+t.v);
+  const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  return head()+`<div class="hero"><small>Saldo do mês</small><div class="big num ${sal<0?'out':''}">${brl(sal)}</div></div>
+  <div class="pair"><div class="box"><small>Entradas</small><b class="num in">${brl(ent)}</b></div><div class="box"><small>Saídas</small><b class="num out">${brl(sai)}</b></div></div>
+  <button class="box cardlink" onclick="go('cartao')"><small>Fatura do cartão neste mês</small><b class="num out">${brl(cc.reduce((s,c)=>s+(inst(c)?c.p:0),0))}</b></button><h2>Para onde foi o dinheiro</h2>`+(cats.length?cats.map(([c,v])=>`<div class="cat"><div class="row"><span>${c}</span><span class="num">${brl(v)} · ${Math.round(v/sai*100)}%</span></div><div class="bar"><i style="width:${v/sai*100}%"></i></div></div>`).join(''):`<div class="empty box">Nenhum gasto neste mês.<br><button class="btn s" onclick="go('novo')">Registrar gasto</button></div>`);
+}
+function lanc(){const l=cur();return head()+`<h2>Lançamentos</h2>`+(l.length?`<div class="list">${l.map(row).join('')}</div>`:`<div class="empty box">Nada registrado em ${monthLabel(month)}.<br><button class="btn s" onclick="go('novo')">Adicionar lançamento</button></div>`)}
+function novo(){
+  return `<h2 style="font-size:22px;margin-bottom:16px">Novo lançamento</h2>
+  <div class="seg"><button class="${form.type==='out'?'on':''}" onclick="setType('out')">Saída</button><button class="${form.type==='in'?'on':''}" onclick="setType('in')">Entrada</button></div>
+  <label for="v">Valor (R$)</label><input id="v" class="val" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off">
+  <label>Categoria</label><div class="chips">${CATS[form.type].map(c=>`<button class="${c===form.cat?'on':''}" onclick="setCat('${c}')">${c}</button>`).join('')}</div>
+  <label for="d">Descrição</label><input id="d" type="text" placeholder="Ex.: feira da semana" autocomplete="off">
+  <label for="dt">Data</label><input id="dt" type="date" value="${today()}">
+  <div class="err" id="err">${form.err}</div><button class="btn" onclick="add()">Salvar lançamento</button>`;
+}
+function setType(t){keep();form.type=t;form.cat=CATS[t][0];render()}
+function setCat(c){keep();form.cat=c;render()}
+let draft={v:'',d:'',dt:''};
+function keep(){const g=i=>document.getElementById(i);if(g('v'))draft={v:g('v').value,d:g('d').value,dt:g('dt').value}}
+function add(){
+  const v=parseFloat(document.getElementById('v').value.replace(/\./g,'').replace(',','.'));
+  const dt=document.getElementById('dt').value;
+  if(!v||v<=0){form.err='Informe um valor maior que zero.';document.getElementById('err').textContent=form.err;return}
+  if(!dt){document.getElementById('err').textContent='Escolha uma data.';return}
+  tx.push({id:Date.now(),type:form.type,v:Math.round(v*100)/100,cat:form.cat,desc:document.getElementById('d').value.trim(),date:dt});
+  save();form.err='';draft={v:'',d:'',dt:''};month=dt.slice(0,7);go('lanc');
+}
+function del(id){if(confirm('Excluir este lançamento?')){tx=tx.filter(t=>t.id!==id);save();render()}}
+function go(t){tab=t;render();window.scrollTo(0,0)}
+let cc=[];try{cc=JSON.parse(localStorage.getItem('caixa-cc')||'[]')}catch(e){cc=[]}
+const saveCC=()=>{try{localStorage.setItem('caixa-cc',JSON.stringify(cc))}catch(e){}};
+let cards=[];try{cards=JSON.parse(localStorage.getItem('caixa-cards')||'[]')}catch(e){cards=[]}
+if(!cards.length&&cc.length)cards=[{id:'c0',name:'Cartão 1'}];
+cc.forEach(c=>{if(!c.card)c.card=cards[0].id});
+const saveCards=()=>{try{localStorage.setItem('caixa-cards',JSON.stringify(cards))}catch(e){}};
+let sel='all',delArm=null;
+let cf={mode:'nova',cat:'Mercado',card:null};
+const cname=id=>(cards.find(k=>k.id===id)||{name:'Cartão'}).name;
+const mi=m=>{const[y,mo]=m.split('-').map(Number);return y*12+mo-1};
+const inst=c=>{const k=mi(month)-mi(c.start);return k>=0&&k<c.n?k+1:0};
+const crow=x=>{const c=x.c,d=c.date?c.date.split('-').reverse().slice(0,2).join('/'):'';return `<div class="tx"><div class="d"><div>${esc(c.desc||c.cat)}</div><small>${sel==='all'?esc(cname(c.card))+' · ':''}${c.cat} · parcela ${x.k}/${c.n}${d?' · compra '+d:''}</small></div><b class="num out">${brl(c.p)}</b><button class="x" onclick="delCC(${c.id})" aria-label="Excluir">×</button></div>`};
+function cartao(){
+  if(!cards.length)return cartoes();
+  const at=cc.filter(c=>sel==='all'||c.card===sel).map(c=>({c,k:inst(c)})).filter(x=>x.k);
+  const nv=x=>x.c.date&&x.c.date.slice(0,7)===month;
+  const novas=at.filter(nv),and=at.filter(x=>!nv(x));
+  const fat=at.reduce((s,x)=>s+x.c.p,0),comp=novas.reduce((s,x)=>s+x.c.p*x.c.n,0);
+  const falta=cc.filter(c=>sel==='all'||c.card===sel).reduce((s,c)=>{const k=mi(month)-mi(c.start)+1;return s+Math.max(0,c.n-Math.max(k,0))*c.p},0);
+  const sec=(t,l)=>l.length?`<h2 class="sec">${t}</h2><div class="list">${l.map(crow).join('')}</div>`:'';
+  return head()+chipsBar()+`<div class="hero"><small>Fatura do mês</small><div class="big num out">${brl(fat)}</div></div>
+  <div class="pair"><div class="box"><small>Compras do mês</small><b class="num">${brl(comp)}</b></div><div class="box"><small>Parcelas futuras</small><b class="num">${brl(falta)}</b></div></div>
+  ${sel==='all'&&cards.length>1?porCartao():''}<button class="btn" onclick="go('novocc')">Adicionar compra ou parcela</button>`
+  +(at.length?sec('Compras feitas neste mês',novas)+sec('Parcelas em andamento',and):`<div class="empty box" style="margin-top:18px">Nenhuma parcela na fatura deste mês.</div>`);
+}
+function novocc(){
+  if(!cards.length)return cartoes();
+  if(!cards.some(k=>k.id===cf.card))cf.card=sel!=='all'&&cards.some(k=>k.id===sel)?sel:cards[0].id;
+  const n=cf.mode==='nova';
+  return `<h2 style="font-size:22px;margin-bottom:16px">Cartão de crédito</h2>
+  <div class="seg"><button class="${n?'on':''}" onclick="setMode('nova')">Compra nova</button><button class="${n?'':'on'}" onclick="setMode('and')">Parcela em andamento</button></div>
+  <label for="cv">${n?'Valor total da compra (R$)':'Valor da parcela (R$)'}</label><input id="cv" class="val" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off">
+  ${n?`<label for="cn">Número de parcelas</label><input id="cn" type="text" inputmode="numeric" value="1">`:`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div><label for="ca">Parcela atual</label><input id="ca" type="text" inputmode="numeric" value="1"></div><div><label for="cn">Total de parcelas</label><input id="cn" type="text" inputmode="numeric" value="2"></div></div><p class="hint">Parcela atual é a que vem na fatura deste mês. As anteriores não entram.</p>`}
+  <label>Cartão</label><div class="chips" id="kchips">${cards.map(k=>`<button class="${k.id===cf.card?'on':''}" onclick="setKCard('${k.id}')">${esc(k.name)}</button>`).join('')}</div>
+  <label>Categoria</label><div class="chips" id="cchips">${CATS.out.map(c=>`<button class="${c===cf.cat?'on':''}" onclick="setCCCat('${c}')">${c}</button>`).join('')}</div>
+  <label for="cd">Descrição</label><input id="cd" type="text" placeholder="Ex.: celular, geladeira" autocomplete="off">
+  ${n?`<label for="cdt">Data da compra</label><input id="cdt" type="date" value="${today()}">`:''}
+  <div class="err" id="cerr"></div><button class="btn" onclick="addCC()">Salvar no cartão</button>`;
+}
+function setMode(m){cf.mode=m;render()}
+function setKCard(id){cf.card=id;[...document.querySelectorAll('#kchips button')].forEach((b,i)=>b.classList.toggle('on',cards[i].id===id))}
+function selCard(id){sel=id;render()}
+function chipsBar(){return `<div class="chips" style="margin-bottom:16px"><button class="${sel==='all'?'on':''}" onclick="selCard('all')">Todos</button>${cards.map(k=>`<button class="${sel===k.id?'on':''}" onclick="selCard('${k.id}')">${esc(k.name)}</button>`).join('')}<button onclick="go('cartoes')" aria-label="Gerenciar cartões">⚙</button></div>`}
+function porCartao(){const rows=cards.map(k=>`<div class="tx"><div class="d"><div>${esc(k.name)}</div></div><b class="num out">${brl(cc.filter(c=>c.card===k.id).reduce((s,c)=>s+(inst(c)?c.p:0),0))}</b></div>`).join('');return `<h2>Fatura por cartão</h2><div class="list" style="margin-bottom:18px">${rows}</div>`}
+function cartoes(){
+  const mine=k=>cc.filter(c=>c.card===k.id).length;
+  return `<h2 style="font-size:22px;margin-bottom:16px">Meus cartões</h2>`+(cards.length?`<div class="list">${cards.map(k=>`<div class="tx"><div class="d"><div>${esc(k.name)}</div><small>${mine(k)} compra(s) cadastrada(s)</small></div><button class="x" style="font-size:14px" onclick="delCard('${k.id}')">${delArm===k.id?'Confirmar?':'×'}</button></div>`).join('')}</div><p class="hint">Excluir um cartão apaga também as compras dele.</p>`:'<p class="hint">Cadastre os cartões que você usa para separar as faturas.</p>')
+  +`<label for="kn">Nome do cartão</label><input id="kn" type="text" placeholder="Ex.: Nubank, Itaú" autocomplete="off"><div class="err" id="kerr"></div><button class="btn" onclick="addCard()">Adicionar cartão</button>`+(cards.length?`<button class="btn s" style="background:none;color:var(--ink);border:1px solid var(--line)" onclick="go('cartao')">Voltar</button>`:'');
+}
+function addCard(){const n=document.getElementById('kn').value.trim();if(!n){document.getElementById('kerr').textContent='Digite o nome do cartão.';return}cards.push({id:'k'+Date.now(),name:n});saveCards();delArm=null;render()}
+function delCard(id){if(delArm!==id){delArm=id;render();return}cards=cards.filter(k=>k.id!==id);cc=cc.filter(c=>c.card!==id);saveCards();saveCC();if(sel===id)sel='all';delArm=null;render()}
+function setCCCat(c){cf.cat=c;document.querySelectorAll('#cchips button').forEach(b=>b.classList.toggle('on',b.textContent===c))}
+function addCC(){
+  const g=i=>document.getElementById(i),e=g('cerr'),nova=cf.mode==='nova';
+  const v=parseFloat(g('cv').value.replace(/\./g,'').replace(',','.')),n=parseInt(g('cn').value),a=nova?1:parseInt(g('ca').value);
+  if(!v||v<=0){e.textContent='Informe um valor maior que zero.';return}
+  if(!n||n<1||n>60){e.textContent='Informe o número de parcelas (1 a 60).';return}
+  if(!a||a<1||a>n){e.textContent='A parcela atual deve estar entre 1 e o total.';return}
+  let date=null,start;
+  if(nova){date=g('cdt').value;if(!date){e.textContent='Escolha a data da compra.';return}start=date.slice(0,7)}
+  else{const[y,m]=today().slice(0,7).split('-').map(Number),d=new Date(y,m-1-(a-1),1);start=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+  cc.push({id:Date.now(),card:cf.card,desc:g('cd').value.trim(),cat:cf.cat,n,start,date,p:Math.round((nova?v/n:v)*100)/100});
+  saveCC();month=nova?start:today().slice(0,7);go('cartao');
+}
+function delCC(id){if(confirm('Excluir esta compra e todas as suas parcelas?')){cc=cc.filter(c=>c.id!==id);saveCC();render()}}
+function render(){
+  document.getElementById('app').innerHTML=tab==='resumo'?resumo():tab==='lanc'?lanc():tab==='cartao'?cartao():tab==='cartoes'?cartoes():tab==='novocc'?novocc():novo();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(tab==='novocc'||tab==='cartoes'?'cartao':tab)));
+  if(tab==='novo'){const g=i=>document.getElementById(i);g('v').value=draft.v;g('d').value=draft.d;if(draft.dt)g('dt').value=draft.dt}
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{keep();go(b.dataset.t)});
+render();
+</script>
+</body>
+</html>
