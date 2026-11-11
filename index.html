@@ -265,28 +265,34 @@ function backupBox(){
   return `<h2 class="sec">Backup</h2><div class="box"><small>${lastBk?'Último backup: '+new Date(lastBk).toLocaleDateString('pt-BR'):'Você ainda não fez backup.'}${old?' · recomendado salvar agora':''}</small>
   <button class="btn" style="margin-top:10px" onclick="saveBackup()">Salvar backup (OneDrive, Arquivos...)</button>
   <button class="btn s ghost" style="width:100%" onclick="document.getElementById('rf').click()">Restaurar backup</button>
-  <input id="rf" type="file" accept=".json,application/json" hidden onchange="restoreBackup(this)"><div class="hint" id="bkmsg"></div></div>`;
+  <input id="rf" type="file" accept=".json,application/json" hidden onchange="restoreBackup(this)"><details style="margin-top:8px"><summary>Restaurar colando o texto</summary><textarea id="bkin" rows="4" style="width:100%;margin-top:6px;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px"></textarea><button class="btn s ghost" onclick="restoreText()">Restaurar do texto</button></details><div class="hint" id="bkmsg"></div><div class="hint" style="opacity:.6">Versão 2.2</div></div>`;
 }
 const bkmsg=(h,bad)=>{const e=document.getElementById('bkmsg');e.style.color=bad?'var(--out)':'var(--ink)';e.innerHTML=h};
 async function saveBackup(){
-  const data={app:'meu-caixa',versao:2,data:new Date().toISOString(),tx,cc,cards,rs};
+  const json=JSON.stringify({app:'meu-caixa',versao:2,data:new Date().toISOString(),tx,cc,cards,rs},null,1);
   const name='meu-caixa-backup-'+today()+'.json';
-  const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
+  const mark=()=>{lastBk=new Date().toISOString();try{localStorage.setItem('caixa-bk',lastBk)}catch(e){}};
+  const ta='width:100%;margin-top:6px;font:12px monospace;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px';
+  const txt=`<details style="margin-top:8px"><summary>Não apareceu o arquivo? Copie o texto</summary><textarea readonly rows="5" style="${ta}" onclick="this.select()">${esc(json)}</textarea><p class="hint">Cole em um bloco de notas e salve como ${name} no OneDrive.</p></details>`;
+  let blob,file;
+  try{blob=new Blob([json],{type:'application/json'});file=new File([blob],name,{type:'application/json'})}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:'Backup Meu Caixa'});mark();bkmsg('Backup enviado para o app que você escolheu.',0);return}
+    catch(e){if(e&&e.name==='AbortError')return}
+  }
   try{
-    const file=new File([blob],name,{type:'application/json'});
-    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Backup Meu Caixa'})}
-    else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
-    lastBk=new Date().toISOString();try{localStorage.setItem('caixa-bk',lastBk)}catch(e){}
-    bkmsg('Backup gerado. Guarde o arquivo no OneDrive ou em Arquivos.',0);
-  }catch(e){if(e&&e.name==='AbortError')return;bkmsg('Não foi possível gerar o arquivo neste navegador.',1)}
+    if(!blob)throw 0;
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    mark();bkmsg('Backup gerado: procure '+name+' na pasta Downloads e mova para o OneDrive.'+txt,0);
+  }catch(e){bkmsg('Não foi possível baixar o arquivo aqui.'+txt,1)}
 }
-function restoreBackup(inp){
-  const f=inp.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d.app!=='meu-caixa'||!Array.isArray(d.tx))throw 0;pendingBk=d;
-    bkmsg(`Arquivo de ${new Date(d.data).toLocaleDateString('pt-BR')}: ${d.tx.length} lançamentos, ${(d.cc||[]).length} compras no cartão, ${(d.rs||[]).length} reservas.<br><button class="btn s" onclick="applyBk()">Substituir os dados deste aparelho</button>`,0)}
-    catch(e){bkmsg('Arquivo inválido. Use um backup gerado por este app.',1)}inp.value=''};
-  rd.readAsText(f);
+function parseBk(text){
+  try{const d=JSON.parse(text);if(d.app!=='meu-caixa'||!Array.isArray(d.tx))throw 0;pendingBk=d;
+    bkmsg(`Backup de ${new Date(d.data).toLocaleDateString('pt-BR')}: ${d.tx.length} lançamentos, ${(d.cc||[]).length} compras no cartão, ${(d.rs||[]).length} reservas.<br><button class="btn s" onclick="applyBk()">Substituir os dados deste aparelho</button>`,0)}
+  catch(e){bkmsg('Arquivo ou texto inválido. Use um backup gerado por este app.',1)}
 }
+function restoreBackup(inp){const f=inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{parseBk(rd.result);inp.value=''};rd.readAsText(f)}
+function restoreText(){parseBk(document.getElementById('bkin').value.trim())}
 function applyBk(){
   const d=pendingBk;if(!d)return;
   tx=d.tx||[];cc=d.cc||[];cards=d.cards||[];rs=d.rs||[];
