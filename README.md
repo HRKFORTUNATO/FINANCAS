@@ -10,6 +10,8 @@ App de controle financeiro pessoal que roda direto no navegador (iPhone, Android
   - Compras novas parceladas
   - Parcelas em andamento
   - Fatura do mês, fatura por cartão e parcelas futuras
+- Reserva financeira: poupança e cofrinhos, com metas, depósitos e retiradas
+- Backup: salva um arquivo .json (compartilhável para OneDrive ou Arquivos) e restaura em qualquer aparelho
 - Tema claro e escuro automático
 
 ## Como publicar no GitHub Pages

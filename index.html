@@ -60,6 +60,9 @@ nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--surf);b
 nav button{flex:1;border:0;background:none;padding:12px 4px 10px;font-size:12px;color:var(--mute)}
 nav button span{display:block;font-size:20px}
 nav button.on{color:var(--ink);font-weight:600}
+.rcard{width:100%;text-align:left;display:block;margin-bottom:10px}
+.rtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.ghost{background:none;color:var(--ink);border:1px solid var(--line)}
 .banner{display:block;width:100%;height:auto;border-radius:18px;margin-bottom:16px}
 .err{color:var(--out);font-size:14px;margin-top:8px;min-height:20px}
 h2.sec{margin-top:24px}
@@ -71,8 +74,9 @@ h2.sec{margin-top:24px}
 <main id="app"></main>
 <nav>
   <button data-t="resumo"><span>◔</span>Resumo</button>
-  <button data-t="lanc"><span>☰</span>Lançamentos</button>
+  <button data-t="lanc"><span>☰</span>Extrato</button>
   <button data-t="cartao"><span>▭</span>Cartão</button>
+  <button data-t="reserva"><span>◎</span>Reserva</button>
   <button data-t="novo"><span>＋</span>Novo</button>
 </nav>
 <script>
@@ -101,7 +105,7 @@ function resumo(){
   const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]);
   return banner()+head()+`<div class="hero"><small>Saldo do mês</small><div class="big num ${sal<0?'out':''}">${brl(sal)}</div></div>
   <div class="pair"><div class="box"><small>Entradas</small><b class="num in">${brl(ent)}</b></div><div class="box"><small>Saídas</small><b class="num out">${brl(sai)}</b></div></div>
-  <button class="box cardlink" onclick="go('cartao')"><small>Fatura do cartão neste mês</small><b class="num out">${brl(cc.reduce((s,c)=>s+(inst(c)?c.p:0),0))}</b></button><h2>Para onde foi o dinheiro</h2>`+(cats.length?cats.map(([c,v])=>`<div class="cat"><div class="row"><span>${c}</span><span class="num">${brl(v)} · ${Math.round(v/sai*100)}%</span></div><div class="bar"><i style="width:${v/sai*100}%"></i></div></div>`).join(''):`<div class="empty box">Nenhum gasto neste mês.<br><button class="btn s" onclick="go('novo')">Registrar gasto</button></div>`);
+  <button class="box cardlink" style="margin-bottom:10px" onclick="go('reserva')"><small>Reserva financeira</small><b class="num in">${brl(rs.reduce((s,r)=>s+rbal(r),0))}</b></button><button class="box cardlink" onclick="go('cartao')"><small>Fatura do cartão neste mês</small><b class="num out">${brl(cc.reduce((s,c)=>s+(inst(c)?c.p:0),0))}</b></button><h2>Para onde foi o dinheiro</h2>`+(cats.length?cats.map(([c,v])=>`<div class="cat"><div class="row"><span>${c}</span><span class="num">${brl(v)} · ${Math.round(v/sai*100)}%</span></div><div class="bar"><i style="width:${v/sai*100}%"></i></div></div>`).join(''):`<div class="empty box">Nenhum gasto neste mês.<br><button class="btn s" onclick="go('novo')">Registrar gasto</button></div>`)+backupBox();
 }
 function lanc(){const l=cur();return head()+`<h2>Lançamentos</h2>`+(l.length?`<div class="list">${l.map(row).join('')}</div>`:`<div class="empty box">Nada registrado em ${monthLabel(month)}.<br><button class="btn s" onclick="go('novo')">Adicionar lançamento</button></div>`)}
 function novo(){
@@ -193,9 +197,99 @@ function addCC(){
 }
 function delCC(id){if(confirm('Excluir esta compra e todas as suas parcelas?')){cc=cc.filter(c=>c.id!==id);saveCC();render()}}
 function render(){
-  document.getElementById('app').innerHTML=tab==='resumo'?resumo():tab==='lanc'?lanc():tab==='cartao'?cartao():tab==='cartoes'?cartoes():tab==='novocc'?novocc():novo();
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(tab==='novocc'||tab==='cartoes'?'cartao':tab)));
+  document.getElementById('app').innerHTML=tab==='resumo'?resumo():tab==='lanc'?lanc():tab==='reserva'?reserva():tab==='novares'?novares():tab==='resdet'?resdet():tab==='cartao'?cartao():tab==='cartoes'?cartoes():tab==='novocc'?novocc():novo();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===navOf(tab)));
   if(tab==='novo'){const g=i=>document.getElementById(i);g('v').value=draft.v;g('d').value=draft.d;if(draft.dt)g('dt').value=draft.dt}
+}
+
+const navOf=t=>({novocc:'cartao',cartoes:'cartao',novares:'reserva',resdet:'reserva'}[t]||t);
+let rs=[];try{rs=JSON.parse(localStorage.getItem('caixa-res')||'[]')}catch(e){rs=[]}
+const saveRS=()=>{try{localStorage.setItem('caixa-res',JSON.stringify(rs))}catch(e){}};
+const rbal=r=>r.mv.reduce((s,m)=>s+m.v,0);
+const RT={poupanca:'Poupança',cofrinho:'Cofrinho',outro:'Outro'};
+let rid=null,rmode='in',rtype='poupanca',rdel=null,pendingBk=null,lastBk='';
+try{lastBk=localStorage.getItem('caixa-bk')||''}catch(e){}
+const num=s=>parseFloat(String(s).replace(/\./g,'').replace(',','.'));
+const seterr=(id,t)=>{document.getElementById(id).textContent=t};
+function reserva(){
+  const tot=rs.reduce((s,r)=>s+rbal(r),0);
+  const cards=rs.map(r=>{const b=rbal(r),pc=r.goal?Math.min(100,b/r.goal*100):0;
+    return `<button class="box rcard" onclick="openRes('${r.id}')"><div class="rtop"><div><b>${esc(r.name)}</b><small>${RT[r.type]}${r.goal?' · meta '+brl(r.goal):''}</small></div><b class="num in">${brl(b)}</b></div>${r.goal?`<div class="bar"><i style="width:${pc}%;background:var(--in)"></i></div><small>${Math.round(pc)}% da meta</small>`:''}</button>`}).join('');
+  return `<div class="hero"><small>Reserva financeira</small><div class="big num in">${brl(tot)}</div></div>`+(rs.length?cards:`<div class="empty box">Cadastre onde você guarda dinheiro: poupança, cofrinhos, caixinhas.</div>`)+`<button class="btn" style="margin-top:16px" onclick="go('novares')">Adicionar poupança ou cofrinho</button>`;
+}
+function novares(){
+  return `<h2 style="font-size:22px;margin-bottom:16px">Nova reserva</h2>
+  <label>Tipo</label><div class="chips" id="rchips">${Object.entries(RT).map(([k,n])=>`<button class="${k===rtype?'on':''}" onclick="setRT('${k}')">${n}</button>`).join('')}</div>
+  <label for="rn">Nome</label><input id="rn" type="text" placeholder="Ex.: Poupança Caixa, Cofrinho viagem" autocomplete="off">
+  <label for="rv">Saldo atual (R$)</label><input id="rv" class="val" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off">
+  <label for="rg">Meta (opcional)</label><input id="rg" type="text" inputmode="decimal" placeholder="Ex.: 10.000,00" autocomplete="off">
+  <div class="err" id="rerr"></div><button class="btn" onclick="addRes()">Salvar reserva</button><button class="btn s ghost" onclick="go('reserva')">Cancelar</button>`;
+}
+function setRT(k){rtype=k;[...document.querySelectorAll('#rchips button')].forEach((b,i)=>b.classList.toggle('on',Object.keys(RT)[i]===k))}
+function addRes(){
+  const g=i=>document.getElementById(i).value,n=g('rn').trim(),v=num(g('rv')||0),goal=num(g('rg')||0)||0;
+  if(!n){seterr('rerr','Dê um nome para a reserva.');return}
+  if(isNaN(v)||v<0){seterr('rerr','Informe o saldo atual (pode ser zero).');return}
+  rs.push({id:'r'+Date.now(),name:n,type:rtype,goal,mv:v>0?[{id:Date.now(),date:today(),v,note:'Saldo inicial'}]:[]});
+  saveRS();go('reserva');
+}
+function openRes(id){rid=id;rmode='in';rdel=null;go('resdet')}
+function resdet(){
+  const r=rs.find(x=>x.id===rid);if(!r){tab='reserva';return reserva()}
+  const b=rbal(r),inn=rmode==='in';
+  const hist=r.mv.slice().sort((a,c)=>c.date.localeCompare(a.date)||c.id-a.id).map(m=>`<div class="tx"><div class="d"><div>${esc(m.note||(m.v>0?'Depósito':'Retirada'))}</div><small>${m.date.split('-').reverse().join('/')}</small></div><b class="num ${m.v>0?'in':'out'}">${m.v>0?'+':'−'}${brl(Math.abs(m.v))}</b><button class="x" onclick="delMv(${m.id})" aria-label="Excluir">×</button></div>`).join('');
+  return `<button class="ic" onclick="go('reserva')" aria-label="Voltar">‹</button>
+  <div class="hero"><small>${esc(r.name)} · ${RT[r.type]}</small><div class="big num in">${brl(b)}</div>${r.goal?`<small>Meta ${brl(r.goal)} · faltam ${brl(Math.max(0,r.goal-b))}</small>`:''}</div>
+  <div class="seg"><button class="${inn?'on':''}" onclick="setRM('in')">Guardar</button><button class="${inn?'':'on'}" onclick="setRM('out')">Retirar</button></div>
+  <label for="mv">Valor (R$)</label><input id="mv" class="val" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off">
+  <label for="mdt">Data</label><input id="mdt" type="date" value="${today()}">
+  <div class="err" id="merr"></div><button class="btn" onclick="addMv()">${inn?'Guardar':'Retirar'}</button>
+  <h2 class="sec">Histórico</h2>${hist?`<div class="list">${hist}</div>`:'<div class="empty box">Sem movimentações.</div>'}
+  <button class="btn s ghost" style="color:var(--out)" onclick="delRes()">${rdel===r.id?'Toque de novo para excluir':'Excluir esta reserva'}</button>`;
+}
+function setRM(m){rmode=m;render()}
+function addMv(){
+  const r=rs.find(x=>x.id===rid),v=num(document.getElementById('mv').value),dt=document.getElementById('mdt').value;
+  if(!v||v<=0){seterr('merr','Informe um valor maior que zero.');return}
+  if(!dt){seterr('merr','Escolha uma data.');return}
+  if(rmode==='out'&&v>rbal(r)+0.001){seterr('merr','Saldo insuficiente nesta reserva.');return}
+  r.mv.push({id:Date.now(),date:dt,v:rmode==='in'?v:-v});saveRS();render();
+}
+function delMv(id){const r=rs.find(x=>x.id===rid);r.mv=r.mv.filter(m=>m.id!==id);saveRS();render()}
+function delRes(){if(rdel!==rid){rdel=rid;render();return}rs=rs.filter(x=>x.id!==rid);saveRS();rdel=null;go('reserva')}
+
+function backupBox(){
+  const old=!lastBk||(Date.now()-new Date(lastBk))>30*864e5;
+  return `<h2 class="sec">Backup</h2><div class="box"><small>${lastBk?'Último backup: '+new Date(lastBk).toLocaleDateString('pt-BR'):'Você ainda não fez backup.'}${old?' · recomendado salvar agora':''}</small>
+  <button class="btn" style="margin-top:10px" onclick="saveBackup()">Salvar backup (OneDrive, Arquivos...)</button>
+  <button class="btn s ghost" style="width:100%" onclick="document.getElementById('rf').click()">Restaurar backup</button>
+  <input id="rf" type="file" accept=".json,application/json" hidden onchange="restoreBackup(this)"><div class="hint" id="bkmsg"></div></div>`;
+}
+const bkmsg=(h,bad)=>{const e=document.getElementById('bkmsg');e.style.color=bad?'var(--out)':'var(--ink)';e.innerHTML=h};
+async function saveBackup(){
+  const data={app:'meu-caixa',versao:2,data:new Date().toISOString(),tx,cc,cards,rs};
+  const name='meu-caixa-backup-'+today()+'.json';
+  const blob=new Blob([JSON.stringify(data,null,1)],{type:'application/json'});
+  try{
+    const file=new File([blob],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Backup Meu Caixa'})}
+    else{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+    lastBk=new Date().toISOString();try{localStorage.setItem('caixa-bk',lastBk)}catch(e){}
+    bkmsg('Backup gerado. Guarde o arquivo no OneDrive ou em Arquivos.',0);
+  }catch(e){if(e&&e.name==='AbortError')return;bkmsg('Não foi possível gerar o arquivo neste navegador.',1)}
+}
+function restoreBackup(inp){
+  const f=inp.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(d.app!=='meu-caixa'||!Array.isArray(d.tx))throw 0;pendingBk=d;
+    bkmsg(`Arquivo de ${new Date(d.data).toLocaleDateString('pt-BR')}: ${d.tx.length} lançamentos, ${(d.cc||[]).length} compras no cartão, ${(d.rs||[]).length} reservas.<br><button class="btn s" onclick="applyBk()">Substituir os dados deste aparelho</button>`,0)}
+    catch(e){bkmsg('Arquivo inválido. Use um backup gerado por este app.',1)}inp.value=''};
+  rd.readAsText(f);
+}
+function applyBk(){
+  const d=pendingBk;if(!d)return;
+  tx=d.tx||[];cc=d.cc||[];cards=d.cards||[];rs=d.rs||[];
+  cc.forEach(c=>{if(!c.card&&cards[0])c.card=cards[0].id});
+  save();saveCC();saveCards();saveRS();pendingBk=null;sel='all';go('resumo');
 }
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{keep();go(b.dataset.t)});
 render();
